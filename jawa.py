@@ -40,7 +40,7 @@ def log_error(message):
 def print_banner():
     print(f"\n{blue}▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰{reset}")
     print(f"{white}      Discord Auto Leveling      {reset}")
-    print(f"{yellow}         by: Aethereal          {reset}")
+    print(f"{yellow}         by: You          {reset}")
     print(f"{blue}▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰{reset}\n")
 
 print_banner()
@@ -54,11 +54,11 @@ def load_tokens():
                 if line.strip() and not line.startswith('#'):
                     tokens.append(line.strip())
             if tokens:
-                log_success(f"Berhasil memuat {len(tokens)} token dari token.txt")
+                log_success(f"Successfully loaded {len(tokens)} tokens from token.txt")
             return tokens
     except FileNotFoundError:
-        log_error("File token.txt tidak ditemukan!")
-        log_info("Buat file token.txt dengan format:")
+        log_error("File token.txt not found!")
+        log_info("Create a token.txt file with the format:")
         print(f"{yellow}TOKEN1{reset}")
         print(f"{yellow}TOKEN2{reset}")
         print(f"{yellow}TOKEN3{reset}")
@@ -136,16 +136,16 @@ class Main(discord.Client):
         
     async def on_ready(self):
         log_success(f"Logged in as {self.user}")
-        log_info(f"Mencoba membuka channel...")
+        log_info(f"Trying to open channel...")
         
         channel = self.get_channel(self.config.channel_id)
         
         if not channel:
-            log_error(f"Channel tidak ditemukan!")
+            log_error(f"Channel not found!")
             await self.close()
             return
             
-        log_success(f"Berhasil terhubung ke channel #{channel.name}")
+        log_success(f"Successfully connected to channel #{channel.name}")
         sent_count = 0
 
         while sent_count < self.config.message_count:
@@ -153,22 +153,22 @@ class Main(discord.Client):
             msg = random.choice(mainMessages)
             try:
                 sent_message = await channel.send(msg)
-                log_success(f"[{self.user}] Pesan {sent_count+1}/{self.config.message_count} terkirim")
+                log_success(f"[{self.user}] Message {sent_count+1}/{self.config.message_count} Sent")
                 
                 if self.config.delete_mode:
                     try:
                         await sent_message.delete()
-                        log_info(f"[{self.user}] Pesan {sent_count+1} dihapus")
+                        log_info(f"[{self.user}] Message {sent_count+1} deleted ")
                     except discord.errors.Forbidden:
-                        log_warning(f"[{self.user}] Tidak bisa menghapus pesan (tidak ada izin)")
+                            log_warning(f"[{self.user}] Cannot delete message (no permission)")
                     except discord.errors.NotFound:
-                        log_warning(f"[{self.user}] Pesan sudah dihapus")
+                        log_warning(f"[{self.user}] Message has been deleted")
                 
                 sent_count += 1
                 
             except discord.errors.Forbidden as e:
                 if "Cannot send messages in a voice channel" in str(e):
-                    log_error(f"[{self.user}] Tidak bisa mengirim pesan di voice channel!")
+                    log_error(f"[{self.user}] Can't send messages on voice channel!")
                     await self.close()
                     return
                 elif "slowmode" in str(e).lower():
@@ -176,18 +176,18 @@ class Main(discord.Client):
                     await asyncio.sleep(10)
                     continue
                 elif "timeout" in str(e).lower():
-                    log_error(f"[{self.user}] Akun sedang dalam timeout!")
+                    log_error(f"[{self.user}] Account is in timeout!")
                     await self.close()
                     return
                 else:
-                    log_error(f"[{self.user}] Tidak bisa mengirim pesan! ({str(e)})")
+                    log_error(f"[{self.user}] Can't send message! ({str(e)})")
                     await self.close()
                     return
                     
             except discord.errors.HTTPException as e:
                 if e.code == 429:  # Rate limit
                     retry_after = e.retry_after
-                    log_warning(f"[{self.user}] Rate limit terdeteksi. Menunggu {retry_after} detik...")
+                    log_warning(f"[{self.user}] Rate limit detected. Waiting {retry_after} seconds...")
                     await asyncio.sleep(retry_after)
                     continue
                 else:
@@ -195,40 +195,40 @@ class Main(discord.Client):
                     continue
                     
             except Exception as e:
-                log_error(f"[{self.user}] Error tidak dikenal: {str(e)}")
+                log_error(f"[{self.user}] Unknown error: {str(e)}")
                 continue
                 
             await asyncio.sleep(self.config.message_delay)
 
-        log_success(f"[{self.user}] Berhasil mengirim {self.config.message_count} pesan")
+        log_success(f"[{self.user}] Successfully sent {self.config.message_count} message")
         await self.close()
 
 def main():
-    log_info("Memuat token dari token.txt...")
+    log_info("Loading tokens from token.txt...")
     tokens = load_tokens()
     
     if not tokens:
-        log_error("Tidak ada token yang berhasil dimuat!")
+        log_error("No tokens loaded successfully!")
         return
 
-    print(f"\n{white}Pilih Mode Leveling:{reset}")
+    print(f"\n{white}Select Leveling Mode:{reset}")
     print(f"{blue}1. {white}Leveling with Delete Message enable{reset}")
     print(f"{blue}2. {white}Leveling without Delete Message{reset}")
     
     while True:
         try:
-            mode = int(input(f"\n{magenta}Pilih mode [1/2]: {reset}"))
+            mode = int(input(f"\n{magenta}Select mode [1/2]: {reset}"))
             if mode in [1, 2]:
                 break
-            print(f"{red}Pilihan tidak valid! Pilih 1 atau 2.{reset}")
+            print(f"{red}Invalid choice! Choose 1 or 2.{reset}")
         except ValueError:
-            print(f"{red}Input tidak valid! Masukkan angka 1 atau 2.{reset}")
+            print(f"{red}Invalid input! Enter number 1 or 2.{reset}")
     
     delete_mode = mode == 1
     
-    channel_id = int(input(f"{magenta}Masukkan Channel ID: {reset}"))
-    message_count = int(input(f"{magenta}Berapa banyak pesan yang akan dikirim: {reset}"))
-    message_delay = int(input(f"{magenta}Delay antara setiap pesan (dalam detik): {reset}"))
+    channel_id = int(input(f"{magenta}Enter Channel ID: {reset}"))
+    message_count = int(input(f"{magenta}How many messages will be sent: {reset}"))
+    message_delay = int(input(f"{magenta}Delay between each message (in seconds): {reset}"))
     
     accounts = []
     for token in tokens:
@@ -236,7 +236,7 @@ def main():
     
     # Menjalankan akun satu per satu
     for i, config in enumerate(accounts, 1):
-        log_info(f"Menjalankan akun {i} dari {len(accounts)}...")
+        log_info(f"Running an account {i} from {len(accounts)}...")
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -244,9 +244,9 @@ def main():
             client = Main(config)
             client.run(config.token, bot=False)
         except discord.LoginFailure:
-            log_error(f"Token tidak valid atau expired!")
+            log_error(f"Token is invalid or expired!")
         except discord.PrivilegedIntentsRequired:
-            log_error(f"Intents tidak diizinkan!")
+            log_error(f"Intents are not allowed!")
         except Exception as e:
             log_error(f"Error: {str(e)}")
         finally:
@@ -256,7 +256,7 @@ def main():
                 pass
             
         if i < len(accounts):
-            log_info(f"Menunggu 5 detik sebelum menjalankan akun berikutnya...")
+            log_info(f"Wait 5 seconds before running the next account...")
             time.sleep(5)
 
 if __name__ == '__main__':
